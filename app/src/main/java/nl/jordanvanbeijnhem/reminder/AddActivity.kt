@@ -3,6 +3,7 @@ package nl.jordanvanbeijnhem.reminder
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_add.*
@@ -22,6 +23,8 @@ class AddActivity : AppCompatActivity() {
     }
 
     private fun initViews() {
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = getString(R.string.title_activity_add)
         fab.setOnClickListener { onSaveClick() }
     }
 
@@ -34,6 +37,16 @@ class AddActivity : AppCompatActivity() {
             finish()
         } else {
             Toast.makeText(this, "The reminder cannot be empty", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        return when (item?.itemId) {
+            android.R.id.home -> {
+                finish()
+                true
+            }
+            else -> return super.onOptionsItemSelected(item)
         }
     }
 }
