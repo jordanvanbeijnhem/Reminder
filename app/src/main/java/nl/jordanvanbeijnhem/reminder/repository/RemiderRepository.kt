@@ -1,6 +1,7 @@
 package nl.jordanvanbeijnhem.reminder.repository
 
 import android.content.Context
+import androidx.lifecycle.LiveData
 import nl.jordanvanbeijnhem.reminder.dao.ReminderDao
 import nl.jordanvanbeijnhem.reminder.database.ReminderRoomDatabase
 import nl.jordanvanbeijnhem.reminder.model.Reminder
@@ -14,7 +15,7 @@ class ReminderRepository(context: Context) {
         reminderDao = reminderRoomDatabase!!.reminderDao()
     }
 
-    suspend fun getAllReminders(): List<Reminder> {
+    fun getAllReminders(): LiveData<List<Reminder>> {
         return reminderDao.getAllReminders()
     }
 

@@ -4,6 +4,8 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -17,6 +19,7 @@ import kotlinx.coroutines.withContext
 import nl.jordanvanbeijnhem.reminder.adapter.ReminderAdapter
 import nl.jordanvanbeijnhem.reminder.model.Reminder
 import nl.jordanvanbeijnhem.reminder.repository.ReminderRepository
+import nl.jordanvanbeijnhem.reminder.viewmodel.MainActivityViewModel
 
 const val ADD_REMINDER_REQUEST_CODE = 100
 
@@ -24,15 +27,15 @@ class MainActivity : AppCompatActivity() {
 
     private val reminders = arrayListOf<Reminder>()
     private val reminderAdapter = ReminderAdapter(reminders)
-    private lateinit var reminderRepository: ReminderRepository
+    private lateinit var viewModel: MainActivityViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        reminderRepository = ReminderRepository(this)
         initViews()
+        initViewModel()
 
         fab.setOnClickListener {
             startAddActivity()
@@ -50,18 +53,16 @@ class MainActivity : AppCompatActivity() {
             )
         )
         createItemTouchHelper().attachToRecyclerView(rvReminders)
-        getRemindersFromDatabase()
     }
 
-    private fun getRemindersFromDatabase() {
-        CoroutineScope(Dispatchers.Main).launch {
-            val reminders = withContext(Dispatchers.IO) {
-                reminderRepository.getAllReminders()
-            }
+    private fun initViewModel() {
+        viewModel = ViewModelProviders.of(this).get(MainActivityViewModel::class.java)
+
+        viewModel.reminders.observe(this, Observer { reminders ->
             this@MainActivity.reminders.clear()
             this@MainActivity.reminders.addAll(reminders)
             reminderAdapter.notifyDataSetChanged()
-        }
+        })
     }
 
     private fun startAddActivity() {
@@ -76,9 +77,8 @@ class MainActivity : AppCompatActivity() {
                     val reminder = data!!.getParcelableExtra<Reminder>(EXTRA_REMINDER)
                     CoroutineScope(Dispatchers.Main).launch {
                         withContext(Dispatchers.IO) {
-                            reminderRepository.insertReminder(reminder)
+                            viewModel.insertReminder(reminder)
                         }
-                        getRemindersFromDatabase()
                     }
                 }
             }
@@ -100,9 +100,8 @@ class MainActivity : AppCompatActivity() {
                 val position = viewHolder.adapterPosition
                 CoroutineScope(Dispatchers.Main).launch {
                     withContext(Dispatchers.IO) {
-                        reminderRepository.deleteReminder(reminders[position])
+                        viewModel.deleteReminder(reminders[position])
                     }
-                    getRemindersFromDatabase()
                 }
             }
         }
